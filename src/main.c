@@ -1,111 +1,208 @@
-/*  Assignment 2 - Sistemas Embutidos e de Tempo Real
----------------------------------------------------------------------------------------------
-Autores: Tomás Gomes   [98807]
-         Vasco Pestana [88827]
-
-Descrição:
-        -> Implementação de um módulo em C que processa comandos que são recebidos em UART 
-        (um caratér de cada vez). O módulo faz parte de um sensor inteligente, capaz de medir
-        temperatura(-50ºC ... 60ºC), humidade(0 ... 100%) e CO2 (400 ... 20000 ppm).
-*/
-
-/** 
+/**
  * @file main.c
- * @brief Programa principal para o processador de comandos de sensores inteligentes.
- * 
- * Este programa inicializa o processador de comandos e executa exemplos de comandos válidos 
- * com diferentes funcionalidades, como leitura de sensores e histórico.
- * 
- * @authors 
- *      - Tomás Gomes [98807]  
- *      - Vasco Pestana [88827]
- * @date 2025
+ * @brief Thermal Process Controller - Monolithic implementation
+ * @details Inline implementations of button, LED, and temperature sensor modules.
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/sys/printk.h>
 
-#include "Command_Processor.h"
+#include "rtdb.h"
+#include "uartcomm.h"
+#include "controller.h"
 
-int main(void) {
-    // Inicializar o processador de comandos
-    CommandProcessorInit();
+/* ===== Button Control (inline) ===== */
+#define BTN_NODE_ONOFF   DT_ALIAS(sw0)   /* S1 */
+#define BTN_NODE_INC     DT_ALIAS(sw1)   /* S2 */
+#define BTN_NODE_DEC     DT_ALIAS(sw3)   /* S4 */
 
-    // -------------------------
-    // Simular comando: #A X Y ! (todos os sensores)
-    // Comando: A (All), Data: T (qualquer, pois 'A' ignora), Checksum: A + T
-    // -------------------------
-    char cmd = 'A';
-    char data = 'T';  // dummy
-    char checksum = CalculateChecksum(cmd, data);
+#define BTN_ONOFF_DEV    DT_GPIO_CTLR(BTN_NODE_ONOFF, gpios)
+#define BTN_ONOFF_PIN    DT_GPIO_PIN(BTN_NODE_ONOFF, gpios)
+#define BTN_ONOFF_FLAGS  (DT_GPIO_FLAGS(BTN_NODE_ONOFF, gpios) | GPIO_INPUT)
 
-    char comando1[] = { '#', cmd, data, checksum, '!' };
-    printf("\n[TEST 1] Command 'A' - All sensors\n");
-    for (int i = 0; i < 5; i++) {
-        UART_ReceiveChar(comando1[i]);
-    }
+#define BTN_INC_DEV      DT_GPIO_CTLR(BTN_NODE_INC, gpios)
+#define BTN_INC_PIN      DT_GPIO_PIN(BTN_NODE_INC, gpios)
+#define BTN_INC_FLAGS    (DT_GPIO_FLAGS(BTN_NODE_INC, gpios) | GPIO_INPUT)
 
-    // -------------------------
-    // Simular comando: #P T X ! (sensor específico - Temperatura)
-    // -------------------------
-    cmd = 'P';
-    data = 'T';  // Temperatura
-    checksum = CalculateChecksum(cmd, data);
+#define BTN_DEC_DEV      DT_GPIO_CTLR(BTN_NODE_DEC, gpios)
+#define BTN_DEC_PIN      DT_GPIO_PIN(BTN_NODE_DEC, gpios)
+#define BTN_DEC_FLAGS    (DT_GPIO_FLAGS(BTN_NODE_DEC, gpios) | GPIO_INPUT)
 
-    char comando2[] = { '#', cmd, data, checksum, '!' };
-    printf("\n[TEST 2] Command 'P T' - Temperature\n");
-    for (int i = 0; i < 5; i++) {
-        UART_ReceiveChar(comando2[i]);
-    }
+static struct gpio_callback cb_onoff;
+static struct gpio_callback cb_inc;
+static struct gpio_callback cb_dec;
 
-    // -------------------------
-    // Simular comando: #P H X ! (sensor específico - Humidade)
-    // -------------------------
-    cmd = 'P';
-    data = 'H';  // Humidade
-    checksum = CalculateChecksum(cmd, data);
-
-    char comando3[] = { '#', cmd, data, checksum, '!' };
-    printf("\n[TEST 3] Command 'P H' - Humidity\n");
-    for (int i = 0; i < 5; i++) {
-        UART_ReceiveChar(comando3[i]);
-    }
-
-    // -------------------------
-    // Simular comando: #L X X ! (listar histórico)
-    // -------------------------
-    cmd = 'L';
-    data = 'X';  // qualquer valor
-    checksum = CalculateChecksum(cmd, data);
-
-    char comando4[] = { '#', cmd, data, checksum, '!' };
-    printf("\n[TEST 4] Command 'L' - Last 20 samples\n");
-    for (int i = 0; i < 5; i++) {
-        UART_ReceiveChar(comando4[i]);
-    }
-
-    // -------------------------
-    // Simular comando: #R X X ! (reset no histórico)
-    // -------------------------
-    cmd = 'R';
-    data = 'X';  // qualquer valor
-    checksum = CalculateChecksum(cmd, data);
-
-    char comando5[] = { '#', cmd, data, checksum, '!' };
-    printf("\n[TEST 5] Command 'R' - Reset\n");
-    for (int i = 0; i < 5; i++) {
-        UART_ReceiveChar(comando5[i]);
-    }
-
-    // -------------------------
-    // Simular comando inválido (checksum errado)
-    // -------------------------
-    char comando6[] = { '#', 'P', 'T', 0x00, '!' };  // checksum incorreto
-    printf("\n[TEST 6] Invalid Command (wrong checksum)\n");
-    for (int i = 0; i < 5; i++) {
-        UART_ReceiveChar(comando6[i]);
-    }
-
-    return 0;
+static void onoff_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
+{
+    ARG_UNUSED(dev); ARG_UNUSED(cb); ARG_UNUSED(pins);
+    bool on = !rtdb_get_system_on();
+    rtdb_set_system_on(on);
+    printk("[Button] ON/OFF toggled -> %d\n", on);
 }
 
+static void inc_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
+{
+    ARG_UNUSED(dev); ARG_UNUSED(cb); ARG_UNUSED(pins);
+    int16_t sp = rtdb_get_setpoint() + 1;
+    rtdb_set_setpoint(sp);
+    printk("[Button] Setpoint increased -> %d°C\n", sp);
+}
+
+static void dec_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
+{
+    ARG_UNUSED(dev); ARG_UNUSED(cb); ARG_UNUSED(pins);
+    int16_t sp = rtdb_get_setpoint() - 1;
+    rtdb_set_setpoint(sp);
+    printk("[Button] Setpoint decreased -> %d°C\n", sp);
+}
+
+void button_ctrl_init(void)
+{
+    const struct device *dev;
+
+    /* ON/OFF */
+    dev = DEVICE_DT_GET(BTN_ONOFF_DEV);
+    gpio_pin_configure(dev, BTN_ONOFF_PIN, BTN_ONOFF_FLAGS);
+    gpio_pin_interrupt_configure(dev, BTN_ONOFF_PIN, GPIO_INT_EDGE_TO_ACTIVE);
+    gpio_init_callback(&cb_onoff, onoff_pressed, BIT(BTN_ONOFF_PIN));
+    gpio_add_callback(dev, &cb_onoff);
+
+    /* INC */
+    dev = DEVICE_DT_GET(BTN_INC_DEV);
+    gpio_pin_configure(dev, BTN_INC_PIN, BTN_INC_FLAGS);
+    gpio_pin_interrupt_configure(dev, BTN_INC_PIN, GPIO_INT_EDGE_TO_ACTIVE);
+    gpio_init_callback(&cb_inc, inc_pressed, BIT(BTN_INC_PIN));
+    gpio_add_callback(dev, &cb_inc);
+
+    /* DEC */
+    dev = DEVICE_DT_GET(BTN_DEC_DEV);
+    gpio_pin_configure(dev, BTN_DEC_PIN, BTN_DEC_FLAGS);
+    gpio_pin_interrupt_configure(dev, BTN_DEC_PIN, GPIO_INT_EDGE_TO_ACTIVE);
+    gpio_init_callback(&cb_dec, dec_pressed, BIT(BTN_DEC_PIN));
+    gpio_add_callback(dev, &cb_dec);
+
+    printk("[Init] Button control initialized\n");
+}
+
+/* ===== LED Control (inline) ===== */
+#define LED_NODE_ONOFF    DT_ALIAS(led0)   /* LED1 */
+#define LED_NODE_NORMAL   DT_ALIAS(led1)   /* LED2 */
+#define LED_NODE_LOW      DT_ALIAS(led2)   /* LED3 */
+#define LED_NODE_HIGH     DT_ALIAS(led3)   /* LED4 */
+
+#define LED_ONOFF_DEV     DT_GPIO_CTLR(LED_NODE_ONOFF, gpios)
+#define LED_ONOFF_PIN     DT_GPIO_PIN(LED_NODE_ONOFF, gpios)
+#define LED_ONOFF_FLAGS   GPIO_OUTPUT_ACTIVE | DT_GPIO_FLAGS(LED_NODE_ONOFF, gpios)
+
+#define LED_NORMAL_DEV    DT_GPIO_CTLR(LED_NODE_NORMAL, gpios)
+#define LED_NORMAL_PIN    DT_GPIO_PIN(LED_NODE_NORMAL, gpios)
+#define LED_NORMAL_FLAGS  GPIO_OUTPUT_ACTIVE | DT_GPIO_FLAGS(LED_NODE_NORMAL, gpios)
+
+#define LED_LOW_DEV       DT_GPIO_CTLR(LED_NODE_LOW, gpios)
+#define LED_LOW_PIN       DT_GPIO_PIN(LED_NODE_LOW, gpios)
+#define LED_LOW_FLAGS     GPIO_OUTPUT_ACTIVE | DT_GPIO_FLAGS(LED_NODE_LOW, gpios)
+
+#define LED_HIGH_DEV      DT_GPIO_CTLR(LED_NODE_HIGH, gpios)
+#define LED_HIGH_PIN      DT_GPIO_PIN(LED_NODE_HIGH, gpios)
+#define LED_HIGH_FLAGS    GPIO_OUTPUT_ACTIVE | DT_GPIO_FLAGS(LED_NODE_HIGH, gpios)
+
+#define LED_STACK_SIZE    1024U
+#define LED_PRIORITY      5U
+static K_THREAD_STACK_DEFINE(led_stack, LED_STACK_SIZE);
+static struct k_thread led_thread;
+
+static void led_task(void *p1, void *p2, void *p3)
+{
+    const struct device *dev;
+    dev = DEVICE_DT_GET(LED_ONOFF_DEV);
+    gpio_pin_configure(dev, LED_ONOFF_PIN, GPIO_OUTPUT_INACTIVE | DT_GPIO_FLAGS(LED_NODE_ONOFF, gpios));
+    dev = DEVICE_DT_GET(LED_NORMAL_DEV);
+    gpio_pin_configure(dev, LED_NORMAL_PIN, GPIO_OUTPUT_INACTIVE | DT_GPIO_FLAGS(LED_NODE_NORMAL, gpios));
+    dev = DEVICE_DT_GET(LED_LOW_DEV);
+    gpio_pin_configure(dev, LED_LOW_PIN, GPIO_OUTPUT_INACTIVE | DT_GPIO_FLAGS(LED_NODE_LOW, gpios));
+    dev = DEVICE_DT_GET(LED_HIGH_DEV);
+    gpio_pin_configure(dev, LED_HIGH_PIN, GPIO_OUTPUT_INACTIVE | DT_GPIO_FLAGS(LED_NODE_HIGH, gpios));
+
+    for (;;) {
+        bool on = rtdb_get_system_on();
+        int16_t cur = rtdb_get_current_temp();
+        int16_t sp  = rtdb_get_setpoint();
+
+        /* System on/off LED */
+        gpio_pin_set(DEVICE_DT_GET(LED_ONOFF_DEV), LED_ONOFF_PIN, (int)on);
+        if (!on) {
+            gpio_pin_set(DEVICE_DT_GET(LED_NORMAL_DEV), LED_NORMAL_PIN, 0);
+            gpio_pin_set(DEVICE_DT_GET(LED_LOW_DEV), LED_LOW_PIN, 0);
+            gpio_pin_set(DEVICE_DT_GET(LED_HIGH_DEV), LED_HIGH_PIN, 0);
+        } else if (cur < sp - 1) {
+            gpio_pin_set(DEVICE_DT_GET(LED_LOW_DEV), LED_LOW_PIN, 1);
+            gpio_pin_set(DEVICE_DT_GET(LED_NORMAL_DEV), LED_NORMAL_PIN, 0);
+            gpio_pin_set(DEVICE_DT_GET(LED_HIGH_DEV), LED_HIGH_PIN, 0);
+        } else if (cur > sp + 1) {
+            gpio_pin_set(DEVICE_DT_GET(LED_HIGH_DEV), LED_HIGH_PIN, 1);
+            gpio_pin_set(DEVICE_DT_GET(LED_NORMAL_DEV), LED_NORMAL_PIN, 0);
+            gpio_pin_set(DEVICE_DT_GET(LED_LOW_DEV), LED_LOW_PIN, 0);
+        } else {
+            gpio_pin_set(DEVICE_DT_GET(LED_NORMAL_DEV), LED_NORMAL_PIN, 1);
+            gpio_pin_set(DEVICE_DT_GET(LED_LOW_DEV), LED_LOW_PIN, 0);
+            gpio_pin_set(DEVICE_DT_GET(LED_HIGH_DEV), LED_HIGH_PIN, 0);
+        }
+        k_sleep(K_MSEC(1000));
+    }
+}
+
+void led_ctrl_init(void)
+{
+    k_thread_create(&led_thread, led_stack, LED_STACK_SIZE,
+                    led_task, NULL, NULL, NULL,
+                    LED_PRIORITY, 0, K_NO_WAIT);
+    printk("[Init] LED control initialized\n");
+}
+
+/* ===== Temperature Sensor (inline) ===== */
+#define SENSOR_STACK_SIZE 1024U
+#define SENSOR_PRIORITY   5U
+static K_THREAD_STACK_DEFINE(sensor_stack, SENSOR_STACK_SIZE);
+static struct k_thread sensor_thread;
+
+static void sensor_task(void *p1, void *p2, void *p3)
+{
+    int16_t fake_temp = rtdb_get_setpoint();
+    bool increasing = true;
+
+    for (;;) {
+        int16_t sp = rtdb_get_setpoint();
+        if (increasing) {
+            fake_temp++;
+            if (fake_temp >= sp + 10) increasing = false;
+        } else {
+            fake_temp--;
+            if (fake_temp <= sp - 10) increasing = true;
+        }
+        rtdb_set_current_temp(fake_temp);
+        printk("[Sensor] current_temp = %d°C\n", fake_temp);
+        k_sleep(K_SECONDS(5));
+    }
+}
+
+void temp_sensor_init(void)
+{
+    k_thread_create(&sensor_thread, sensor_stack, SENSOR_STACK_SIZE,
+                    sensor_task, NULL, NULL, NULL,
+                    SENSOR_PRIORITY, 0, K_NO_WAIT);
+    printk("[Init] Temp sensor initialized\n");
+}
+
+/* ===== Main ===== */
+int main(void)
+{
+    uart_comm_init();
+    button_ctrl_init();
+    led_ctrl_init();
+    temp_sensor_init();
+    controller_init();
+    return 0;
+}
