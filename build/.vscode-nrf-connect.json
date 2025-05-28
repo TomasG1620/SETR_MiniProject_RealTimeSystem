@@ -1,0 +1,19 @@
+{
+  "toolchainPath": "c:\\ncs\\toolchains\\cf2149caf2",
+  "sdkPath": "c:\\ncs\\v2.6.0",
+  "board": "nrf52840dk_nrf52840",
+  "boardDir": "c:/ncs/v2.6.0/zephyr/boards/arm/nrf52840dk_nrf52840",
+  "boardDirs": [
+    "c:/ncs/v2.6.0/zephyr/boards/arm/nrf52840dk_nrf52840"
+  ],
+  "optimizations": "none",
+  "cmakeArgs": [],
+  "confFiles": [
+    "prj.conf"
+  ],
+  "buildDirectory": "build",
+  "kconfigFragments": [],
+  "snippets": [],
+  "dtcOverlays": [],
+  "extraDtcOverlays": []
+}
