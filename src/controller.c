@@ -1,37 +1,30 @@
 /**
  * @file controller.c
  * @brief On/off controller for thermal process
- * @details Simple hysteresis controller: reads setpoint and current_temp from RTDB
- *          and drives heater via PWM (full on/off). Compliant with MISRA-C.
+ * @details Reads setpoint and current temperature from RTDB,
+ *          drives heater via GPIO (active-low MOSFET gate). Compliant with MISRA-C.
  */
 
 #include "controller.h"
 #include "rtdb.h"
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
-#include <zephyr/drivers/pwm.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/sys/printk.h>
 
-/* Heater PWM alias in DT */
-#define HEATER_NODE        DT_ALIAS(pwm_led0)
-#define HEATER_CTLR_NODE   DT_PWMS_CTLR(HEATER_NODE)
-#define HEATER_CHANNEL     DT_PWMS_CHANNEL(HEATER_NODE)
-#define HEATER_FLAGS       DT_PWMS_FLAGS(HEATER_NODE)
+/* Heater output GPIO configuration */
+#define HEATER_GPIO_NODE DT_NODELABEL(gpio1)  /* Use Port 1 to avoid SW1 conflict */
+#define HEATER_PIN       12U                  /* P1.12 connected to MOSFET gate */
 
-/* PWM period in nanoseconds (1 kHz) */
-#define PWM_PERIOD_NS      1000000U
-
-/* Hysteresis band (°C) */
-#define HYSTERESIS         1
-
-/* Control task parameters */
-#define CTRL_STACK_SIZE    1024U
-#define CTRL_PRIORITY      5U
-static K_THREAD_STACK_DEFINE(ctrl_stack, CTRL_STACK_SIZE);
+static const struct device *heater_dev;
+static K_THREAD_STACK_DEFINE(ctrl_stack, 1024);
 static struct k_thread ctrl_thread;
 
 /**
- * @brief Control loop: on/off with hysteresis
+ * @brief On/off control loop
+ *
+ * Heater ON when current_temp < setpoint, OFF otherwise.
+ * Note: MOSFET gate is active-low: drive pin low to turn heater ON.
  */
 static void control_task(void *p1, void *p2, void *p3)
 {
@@ -39,50 +32,40 @@ static void control_task(void *p1, void *p2, void *p3)
     ARG_UNUSED(p2);
     ARG_UNUSED(p3);
 
-    const struct device *pwm_dev = DEVICE_DT_GET(HEATER_CTLR_NODE);
-    __ASSERT(pwm_dev != NULL, "PWM controller device not found");
+    for (;;)
+    {
+        const int16_t sp  = rtdb_get_setpoint();
+        const int16_t cur = rtdb_get_current_temp();
+        const bool req_on = (cur < sp);
 
-    bool heater_on = false;
+        /* Active-low gate: 0 = ON, 1 = OFF */
+        /* Active-high gate: 1 = ON, 0 = OFF */
+        gpio_pin_set(heater_dev, HEATER_PIN, req_on ? 1 : 0);
 
-    for (;;) {
-        int16_t setpoint = rtdb_get_setpoint();
-        int16_t current  = rtdb_get_current_temp();
-
-        if (!heater_on) {
-            if (current < (int16_t)(setpoint - HYSTERESIS)) {
-                heater_on = true;
-            }
-        } else {
-            if (current > (int16_t)(setpoint + HYSTERESIS)) {
-                heater_on = false;
-            }
-        }
-
-        /* Drive heater: full on/off via PWM */
-        if (heater_on) {
-            (void)pwm_set(pwm_dev, HEATER_CHANNEL,
-                          PWM_PERIOD_NS, PWM_PERIOD_NS,
-                          HEATER_FLAGS);
-        } else {
-            (void)pwm_set(pwm_dev, HEATER_CHANNEL,
-                          PWM_PERIOD_NS, 0U,
-                          HEATER_FLAGS);
-        }
-
-        printk("[Controller] sp=%d, cur=%d, heater=%d\n",
-               setpoint, current, (int)heater_on);
-
-        k_sleep(K_SECONDS(30));
+        printk("[Ctrl] sp=%d°C cur=%d°C heater=%d\n", sp, cur, (int)req_on);
+        k_sleep(K_MSEC(5000));
     }
 }
 
 /**
- * @brief Initialize controller
+ * @brief Initialize on/off controller
  */
 void controller_init(void)
 {
-    k_thread_create(&ctrl_thread, ctrl_stack, CTRL_STACK_SIZE,
+    heater_dev = DEVICE_DT_GET(HEATER_GPIO_NODE);
+    __ASSERT(heater_dev != NULL, "Heater GPIO device not found");
+    if (!device_is_ready(heater_dev)) {
+        printk("[Ctrl] Heater GPIO not ready\n");
+        return;
+    }
+
+    /* Configure P1.12 as output, default OFF */
+    gpio_pin_configure(heater_dev, HEATER_PIN, GPIO_OUTPUT_INACTIVE);
+    gpio_pin_set(heater_dev, HEATER_PIN, 1);
+
+    /* Launch control thread */
+    k_thread_create(&ctrl_thread, ctrl_stack, K_THREAD_STACK_SIZEOF(ctrl_stack),
                     control_task, NULL, NULL, NULL,
-                    CTRL_PRIORITY, 0, K_NO_WAIT);
-    printk("Controller initialized\n");
+                    5, 0, K_NO_WAIT);
+    printk("[Init] Controller\n");
 }
