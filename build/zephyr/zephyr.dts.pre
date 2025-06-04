@@ -1194,16 +1194,10 @@ zephyr_udc0: &usbd {
 # 0 "<command-line>" 2
 # 1 "C:/Users/nunot/thermalcontrolproject/nrf52840dk_nrf52840.overlay" 1
 &i2c0 {
-    status = "okay";
-
-    pinctrl-0 = <&i2c0_default>;
-    pinctrl-1 = <&i2c0_sleep>;
-    pinctrl-names = "default", "sleep";
-
-    tc74sensor: tc74sensor@48 {
+    tc74sensor: tc74sensor@4D{
         compatible = "i2c-device";
-        reg = <0x48>;
-        status = "okay";
+        reg = < 0x4D >;
+        label = "TC74SENSOR";
     };
 };
 # 0 "<command-line>" 2

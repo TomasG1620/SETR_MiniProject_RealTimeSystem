@@ -11,7 +11,6 @@
     "__subsystem": [
         "gpio_driver_api",
         "i2c_driver_api",
-        "pwm_driver_api",
         "uart_driver_api",
         "crypto_driver_api",
         "adc_driver_api",
@@ -48,6 +47,7 @@
         "peci_driver_api",
         "ps2_driver_api",
         "ptp_clock_driver_api",
+        "pwm_driver_api",
         "regulator_parent_driver_api",
         "regulator_driver_api",
         "reset_driver_api",

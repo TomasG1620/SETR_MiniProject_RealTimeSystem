@@ -167,9 +167,6 @@ C:/Users/nunot/thermalcontrolproject/build/zephyr/drivers/i2c/CMakeFiles/rebuild
 C:/Users/nunot/thermalcontrolproject/build/zephyr/drivers/pinctrl/CMakeFiles/edit_cache.dir
 C:/Users/nunot/thermalcontrolproject/build/zephyr/drivers/pinctrl/CMakeFiles/drivers__pinctrl.dir
 C:/Users/nunot/thermalcontrolproject/build/zephyr/drivers/pinctrl/CMakeFiles/rebuild_cache.dir
-C:/Users/nunot/thermalcontrolproject/build/zephyr/drivers/pwm/CMakeFiles/drivers__pwm.dir
-C:/Users/nunot/thermalcontrolproject/build/zephyr/drivers/pwm/CMakeFiles/edit_cache.dir
-C:/Users/nunot/thermalcontrolproject/build/zephyr/drivers/pwm/CMakeFiles/rebuild_cache.dir
 C:/Users/nunot/thermalcontrolproject/build/zephyr/drivers/serial/CMakeFiles/drivers__serial.dir
 C:/Users/nunot/thermalcontrolproject/build/zephyr/drivers/serial/CMakeFiles/edit_cache.dir
 C:/Users/nunot/thermalcontrolproject/build/zephyr/drivers/serial/CMakeFiles/rebuild_cache.dir
