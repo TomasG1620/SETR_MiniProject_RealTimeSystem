@@ -1,0 +1,87 @@
+\doxysection{src/uartcomm.c File Reference}
+\hypertarget{uartcomm_8c}{}\label{uartcomm_8c}\index{src/uartcomm.c@{src/uartcomm.c}}
+
+
+Módulo de comunicação UART\+: parser de frames e framing.  
+
+
+{\ttfamily \#include "{}uartcomm.\+h"{}}\newline
+{\ttfamily \#include "{}rtdb.\+h"{}}\newline
+{\ttfamily \#include $<$zephyr/kernel.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/device.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/drivers/uart.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/sys/printk.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$stddef.\+h$>$}\newline
+{\ttfamily \#include $<$stdint.\+h$>$}\newline
+Include dependency graph for uartcomm.\+c\+:
+% FIG 0
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{uartcomm_8c_af167142e60119763143a1b2e8512ea59}{UART\+\_\+\+STACK\+\_\+\+SIZE}}~1024U
+\item 
+\#define \mbox{\hyperlink{uartcomm_8c_a7bb8116c0084a1decc494f532e229e1e}{UART\+\_\+\+PRIORITY}}~5U
+\item 
+\#define \mbox{\hyperlink{uartcomm_8c_ab0249d81dd53336b7810ebcf29511210}{UART\+\_\+\+BUF\+\_\+\+SIZE}}~64U
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{uartcomm_8c_a2d246d2a460eecf096cc65430d0377a0}{K\+\_\+\+THREAD\+\_\+\+STACK\+\_\+\+DEFINE}} (uart\+\_\+stack, \mbox{\hyperlink{uartcomm_8c_af167142e60119763143a1b2e8512ea59}{UART\+\_\+\+STACK\+\_\+\+SIZE}})
+\item 
+void \mbox{\hyperlink{uartcomm_8c_a831861af1bf5e28dca2ae8b1b7f27b3e}{uart\+\_\+comm\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa a comunicação UART criando a thread uart\+\_\+task() \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Módulo de comunicação UART\+: parser de frames e framing. 
+
+
+\begin{DoxyItemize}
+\item Usa polling da UART (uart\+\_\+poll\+\_\+in/uart\+\_\+poll\+\_\+out) para receber bytes.
+\item Implementa framing\+: “\# $<$\+CMD$>$ $<$\+DATA ASCII$>$ \texorpdfstring{$<$}{<}CS(3 dígitos)\texorpdfstring{$>$}{>} !”
+\item Verifica framing e checksum. Envia acknowledgment via send\+\_\+ack() ou resposta de consulta.
+\item Suporta os seguintes comandos\+: • \#\+Mxxx\+YYY! → set max\+\_\+temp (3 dígitos); envia ACK \textquotesingle{}o\textquotesingle{} ou \textquotesingle{}i\textquotesingle{} • \#mxxx\+YYY! → set min\+\_\+temp (3 dígitos); envia ACK \textquotesingle{}o\textquotesingle{} ou \textquotesingle{}i\textquotesingle{} • \#C! → get current\+\_\+temp; envia \#c\+XXXYYY! • \#\+Rxxxx\+YYY!→ set sampling\+\_\+rate (4 dígitos); envia ACK \textquotesingle{}o\textquotesingle{} ou \textquotesingle{}i\textquotesingle{} • \#r! → get sampling\+\_\+rate; envia \#s\+XXXXYYY! • \#\+E0!/\#\+E1! → liga/desliga sistema; envia ACK \textquotesingle{}o\textquotesingle{} ou \textquotesingle{}i\textquotesingle{} • \#\+S…! → set parâmetros do controlador (stub); envia ACK \textquotesingle{}o\textquotesingle{} ou \textquotesingle{}i\textquotesingle{}
+\item Erros\+: • framing error → ACK com código \textquotesingle{}f\textquotesingle{} • checksum error → ACK com código \textquotesingle{}s\textquotesingle{} • invalid command → ACK com código \textquotesingle{}i\textquotesingle{} 
+\end{DoxyItemize}
+
+\doxysubsection{Macro Definition Documentation}
+\Hypertarget{uartcomm_8c_ab0249d81dd53336b7810ebcf29511210}\label{uartcomm_8c_ab0249d81dd53336b7810ebcf29511210} 
+\index{uartcomm.c@{uartcomm.c}!UART\_BUF\_SIZE@{UART\_BUF\_SIZE}}
+\index{UART\_BUF\_SIZE@{UART\_BUF\_SIZE}!uartcomm.c@{uartcomm.c}}
+\doxysubsubsection{\texorpdfstring{UART\_BUF\_SIZE}{UART\_BUF\_SIZE}}
+{\footnotesize\ttfamily \#define UART\+\_\+\+BUF\+\_\+\+SIZE~64U}
+
+Tamanho do buffer de receção de bytes \Hypertarget{uartcomm_8c_a7bb8116c0084a1decc494f532e229e1e}\label{uartcomm_8c_a7bb8116c0084a1decc494f532e229e1e} 
+\index{uartcomm.c@{uartcomm.c}!UART\_PRIORITY@{UART\_PRIORITY}}
+\index{UART\_PRIORITY@{UART\_PRIORITY}!uartcomm.c@{uartcomm.c}}
+\doxysubsubsection{\texorpdfstring{UART\_PRIORITY}{UART\_PRIORITY}}
+{\footnotesize\ttfamily \#define UART\+\_\+\+PRIORITY~5U}
+
+Prioridade da thread UART \Hypertarget{uartcomm_8c_af167142e60119763143a1b2e8512ea59}\label{uartcomm_8c_af167142e60119763143a1b2e8512ea59} 
+\index{uartcomm.c@{uartcomm.c}!UART\_STACK\_SIZE@{UART\_STACK\_SIZE}}
+\index{UART\_STACK\_SIZE@{UART\_STACK\_SIZE}!uartcomm.c@{uartcomm.c}}
+\doxysubsubsection{\texorpdfstring{UART\_STACK\_SIZE}{UART\_STACK\_SIZE}}
+{\footnotesize\ttfamily \#define UART\+\_\+\+STACK\+\_\+\+SIZE~1024U}
+
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{uartcomm_8c_a2d246d2a460eecf096cc65430d0377a0}\label{uartcomm_8c_a2d246d2a460eecf096cc65430d0377a0} 
+\index{uartcomm.c@{uartcomm.c}!K\_THREAD\_STACK\_DEFINE@{K\_THREAD\_STACK\_DEFINE}}
+\index{K\_THREAD\_STACK\_DEFINE@{K\_THREAD\_STACK\_DEFINE}!uartcomm.c@{uartcomm.c}}
+\doxysubsubsection{\texorpdfstring{K\_THREAD\_STACK\_DEFINE()}{K\_THREAD\_STACK\_DEFINE()}}
+{\footnotesize\ttfamily K\+\_\+\+THREAD\+\_\+\+STACK\+\_\+\+DEFINE (\begin{DoxyParamCaption}\item[{uart\+\_\+stack}]{,  }\item[{\mbox{\hyperlink{uartcomm_8c_af167142e60119763143a1b2e8512ea59}{UART\+\_\+\+STACK\+\_\+\+SIZE}}}]{ }\end{DoxyParamCaption})}
+
+\Hypertarget{uartcomm_8c_a831861af1bf5e28dca2ae8b1b7f27b3e}\label{uartcomm_8c_a831861af1bf5e28dca2ae8b1b7f27b3e} 
+\index{uartcomm.c@{uartcomm.c}!uart\_comm\_init@{uart\_comm\_init}}
+\index{uart\_comm\_init@{uart\_comm\_init}!uartcomm.c@{uartcomm.c}}
+\doxysubsubsection{\texorpdfstring{uart\_comm\_init()}{uart\_comm\_init()}}
+{\footnotesize\ttfamily void uart\+\_\+comm\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa a comunicação UART criando a thread uart\+\_\+task() 
+
+Inicializa a thread de comunicação UART. 

@@ -1,0 +1,289 @@
+\doxysection{src/main.c File Reference}
+\hypertarget{main_8c}{}\label{main_8c}\index{src/main.c@{src/main.c}}
+
+
+Thermal Process Controller (versão monolítica)  
+
+
+{\ttfamily \#include $<$zephyr/kernel.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/device.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/devicetree.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/drivers/gpio.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/drivers/i2c.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/drivers/pwm.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/sys/printk.\+h$>$}\newline
+{\ttfamily \#include "{}rtdb.\+h"{}}\newline
+{\ttfamily \#include "{}uartcomm.\+h"{}}\newline
+{\ttfamily \#include "{}controller.\+h"{}}\newline
+Include dependency graph for main.\+c\+:
+% FIG 0
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{main_8c_aed45ad22683a9ea4259950d7fc941dcd}{BTN\+\_\+\+NODE\+\_\+\+ONOFF}}~DT\+\_\+\+ALIAS(sw0)
+\item 
+\#define \mbox{\hyperlink{main_8c_ab7a49be1380bffc58acc1e5e87b968e2}{BTN\+\_\+\+NODE\+\_\+\+INC}}~DT\+\_\+\+ALIAS(sw1)
+\item 
+\#define \mbox{\hyperlink{main_8c_a6cd918a356ea21170a9023ec211199c4}{BTN\+\_\+\+NODE\+\_\+\+MENU}}~DT\+\_\+\+ALIAS(sw2)
+\item 
+\#define \mbox{\hyperlink{main_8c_a944fef7ce8eada3ee28cb2366070e0a7}{BTN\+\_\+\+NODE\+\_\+\+DEC}}~DT\+\_\+\+ALIAS(sw3)
+\item 
+\#define \mbox{\hyperlink{main_8c_a735f93311c16ab7758c4b7d3f004e6dc}{BTN\+\_\+\+ONOFF\+\_\+\+DEV}}~DT\+\_\+\+GPIO\+\_\+\+CTLR(\mbox{\hyperlink{main_8c_aed45ad22683a9ea4259950d7fc941dcd}{BTN\+\_\+\+NODE\+\_\+\+ONOFF}}, gpios)
+\item 
+\#define \mbox{\hyperlink{main_8c_aa698c1084dee0a05ffa2f57889cb7632}{BTN\+\_\+\+ONOFF\+\_\+\+PIN}}~DT\+\_\+\+GPIO\+\_\+\+PIN(\mbox{\hyperlink{main_8c_aed45ad22683a9ea4259950d7fc941dcd}{BTN\+\_\+\+NODE\+\_\+\+ONOFF}}, gpios)
+\item 
+\#define \mbox{\hyperlink{main_8c_a08a380f6dab88579fd4b373a5a7ca7d4}{BTN\+\_\+\+ONOFF\+\_\+\+FLAGS}}~(DT\+\_\+\+GPIO\+\_\+\+FLAGS(\mbox{\hyperlink{main_8c_aed45ad22683a9ea4259950d7fc941dcd}{BTN\+\_\+\+NODE\+\_\+\+ONOFF}}, gpios) \texorpdfstring{$\vert$}{|} GPIO\+\_\+\+INPUT)
+\item 
+\#define \mbox{\hyperlink{main_8c_a57c785e1efc6d76a8019061e263589ef}{BTN\+\_\+\+INC\+\_\+\+DEV}}~DT\+\_\+\+GPIO\+\_\+\+CTLR(\mbox{\hyperlink{main_8c_ab7a49be1380bffc58acc1e5e87b968e2}{BTN\+\_\+\+NODE\+\_\+\+INC}}, gpios)
+\item 
+\#define \mbox{\hyperlink{main_8c_abfa9506de7ef04c31db16f993de70249}{BTN\+\_\+\+INC\+\_\+\+PIN}}~DT\+\_\+\+GPIO\+\_\+\+PIN(\mbox{\hyperlink{main_8c_ab7a49be1380bffc58acc1e5e87b968e2}{BTN\+\_\+\+NODE\+\_\+\+INC}}, gpios)
+\item 
+\#define \mbox{\hyperlink{main_8c_a2307b3d1787df8f605e71e3a6270ef52}{BTN\+\_\+\+INC\+\_\+\+FLAGS}}~(DT\+\_\+\+GPIO\+\_\+\+FLAGS(\mbox{\hyperlink{main_8c_ab7a49be1380bffc58acc1e5e87b968e2}{BTN\+\_\+\+NODE\+\_\+\+INC}}, gpios) \texorpdfstring{$\vert$}{|} GPIO\+\_\+\+INPUT)
+\item 
+\#define \mbox{\hyperlink{main_8c_a978e7b36b5b694c80ef6ea7d03ed1e58}{BTN\+\_\+\+MENU\+\_\+\+DEV}}~DT\+\_\+\+GPIO\+\_\+\+CTLR(\mbox{\hyperlink{main_8c_a6cd918a356ea21170a9023ec211199c4}{BTN\+\_\+\+NODE\+\_\+\+MENU}}, gpios)
+\item 
+\#define \mbox{\hyperlink{main_8c_a6671305f52aa9d6c9641963c5c785135}{BTN\+\_\+\+MENU\+\_\+\+PIN}}~DT\+\_\+\+GPIO\+\_\+\+PIN(\mbox{\hyperlink{main_8c_a6cd918a356ea21170a9023ec211199c4}{BTN\+\_\+\+NODE\+\_\+\+MENU}}, gpios)
+\item 
+\#define \mbox{\hyperlink{main_8c_a5f1aa626e51f58c68ce5a750a238b43e}{BTN\+\_\+\+MENU\+\_\+\+FLAGS}}~(DT\+\_\+\+GPIO\+\_\+\+FLAGS(\mbox{\hyperlink{main_8c_a6cd918a356ea21170a9023ec211199c4}{BTN\+\_\+\+NODE\+\_\+\+MENU}}, gpios) \texorpdfstring{$\vert$}{|} GPIO\+\_\+\+INPUT)
+\item 
+\#define \mbox{\hyperlink{main_8c_a41bd0f4f0c5cb2ebe5241da50a384996}{BTN\+\_\+\+DEC\+\_\+\+DEV}}~DT\+\_\+\+GPIO\+\_\+\+CTLR(\mbox{\hyperlink{main_8c_a944fef7ce8eada3ee28cb2366070e0a7}{BTN\+\_\+\+NODE\+\_\+\+DEC}}, gpios)
+\item 
+\#define \mbox{\hyperlink{main_8c_ac823321dbbbf08bb9ebd923684f0badd}{BTN\+\_\+\+DEC\+\_\+\+PIN}}~DT\+\_\+\+GPIO\+\_\+\+PIN(\mbox{\hyperlink{main_8c_a944fef7ce8eada3ee28cb2366070e0a7}{BTN\+\_\+\+NODE\+\_\+\+DEC}}, gpios)
+\item 
+\#define \mbox{\hyperlink{main_8c_a15fe0582df14c5577f4e09c8d095f228}{BTN\+\_\+\+DEC\+\_\+\+FLAGS}}~(DT\+\_\+\+GPIO\+\_\+\+FLAGS(\mbox{\hyperlink{main_8c_a944fef7ce8eada3ee28cb2366070e0a7}{BTN\+\_\+\+NODE\+\_\+\+DEC}}, gpios) \texorpdfstring{$\vert$}{|} GPIO\+\_\+\+INPUT)
+\item 
+\#define \mbox{\hyperlink{main_8c_add56dedbc09f82766e39588e01978e7d}{DEBOUNCE\+\_\+\+MS}}~50
+\item 
+\#define \mbox{\hyperlink{main_8c_a98dbd638cf9eaa926698857ba3a100f6}{LED\+\_\+\+NODE\+\_\+\+ONOFF}}~DT\+\_\+\+ALIAS(led0)
+\item 
+\#define \mbox{\hyperlink{main_8c_a7ec72e9e1205fe670999b58ae24bdb6b}{LED\+\_\+\+NODE\+\_\+\+NORMAL}}~DT\+\_\+\+ALIAS(led1)
+\item 
+\#define \mbox{\hyperlink{main_8c_a3f33888c6ff7135ea50b7c41428f4778}{LED\+\_\+\+NODE\+\_\+\+LOW}}~DT\+\_\+\+ALIAS(led2)
+\item 
+\#define \mbox{\hyperlink{main_8c_a71090bba474a77e2d24330241219da46}{LED\+\_\+\+NODE\+\_\+\+HIGH}}~DT\+\_\+\+ALIAS(led3)
+\item 
+\#define \mbox{\hyperlink{main_8c_a79aaa89920d05217559f07e3602af050}{TC74\+\_\+\+CMD\+\_\+\+RTR}}~0x00u
+\item 
+\#define \mbox{\hyperlink{main_8c_a61e15cb2413134ad4873a095057ba60e}{I2\+C0\+\_\+\+NID}}~DT\+\_\+\+NODELABEL(tc74sensor)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{main_8c_ab29d603b0ccc3d33eac92b0ca4bbb904}{button\+\_\+ctrl\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa todos os botões (SW0..SW3) com configurações de GPIO e callbacks. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{main_8c_aab00d20330aa6a00b80d197675ae3b72}{led\+\_\+ctrl\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa o controlo de LEDs criando a thread led\+\_\+task. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{main_8c_a840291bc02cba5474a4cb46a9b9566fe}{main}} (void)
+\begin{DoxyCompactList}\small\item\em Função principal (entry point) do firmware. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Thermal Process Controller (versão monolítica) 
+
+
+\begin{DoxyItemize}
+\item Botões\+: liga/desliga sistema, inc/dec setpoint (atualiza RTDB)
+\item LEDs\+: indicam estado ON/\+OFF, “normal”, “baixo” ou “alto” comparando current\+\_\+temp x setpoint
+\item Sensor TC74\+A0 via I²C\+: escreve comando RTR (0x00) e lê 1 byte (temperatura em °C), atualiza RTDB
+\item Controlador ON/\+OFF\+: liga/desliga MOSFET (p1.\+12) conforme histerese ±1°C sobre setpoint
+\item UART\+: permite consultar current\+\_\+temp e mudar max\+\_\+temp/min\+\_\+temp/sampling rate/on-\/off via comandos “\+::…!”
+\end{DoxyItemize}
+
+Este ficheiro inicializa todas as tarefas (threads) do sistema\+:
+\begin{DoxyItemize}
+\item UART
+\item Controlo de botões
+\item Controlo de LEDs
+\item Leitura do sensor I²C
+\item Controlador ON/\+OFF
+\end{DoxyItemize}
+
+\begin{DoxyAuthor}{Author}
+Nuno Tomás Gomes \mbox{[}98807\mbox{]} / Vasco Pestana \mbox{[}88827\mbox{]} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+04/06/2025 
+\end{DoxyDate}
+
+
+\doxysubsection{Macro Definition Documentation}
+\Hypertarget{main_8c_a41bd0f4f0c5cb2ebe5241da50a384996}\label{main_8c_a41bd0f4f0c5cb2ebe5241da50a384996} 
+\index{main.c@{main.c}!BTN\_DEC\_DEV@{BTN\_DEC\_DEV}}
+\index{BTN\_DEC\_DEV@{BTN\_DEC\_DEV}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_DEC\_DEV}{BTN\_DEC\_DEV}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+DEC\+\_\+\+DEV~DT\+\_\+\+GPIO\+\_\+\+CTLR(\mbox{\hyperlink{main_8c_a944fef7ce8eada3ee28cb2366070e0a7}{BTN\+\_\+\+NODE\+\_\+\+DEC}}, gpios)}
+
+\Hypertarget{main_8c_a15fe0582df14c5577f4e09c8d095f228}\label{main_8c_a15fe0582df14c5577f4e09c8d095f228} 
+\index{main.c@{main.c}!BTN\_DEC\_FLAGS@{BTN\_DEC\_FLAGS}}
+\index{BTN\_DEC\_FLAGS@{BTN\_DEC\_FLAGS}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_DEC\_FLAGS}{BTN\_DEC\_FLAGS}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+DEC\+\_\+\+FLAGS~(DT\+\_\+\+GPIO\+\_\+\+FLAGS(\mbox{\hyperlink{main_8c_a944fef7ce8eada3ee28cb2366070e0a7}{BTN\+\_\+\+NODE\+\_\+\+DEC}}, gpios) \texorpdfstring{$\vert$}{|} GPIO\+\_\+\+INPUT)}
+
+\Hypertarget{main_8c_ac823321dbbbf08bb9ebd923684f0badd}\label{main_8c_ac823321dbbbf08bb9ebd923684f0badd} 
+\index{main.c@{main.c}!BTN\_DEC\_PIN@{BTN\_DEC\_PIN}}
+\index{BTN\_DEC\_PIN@{BTN\_DEC\_PIN}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_DEC\_PIN}{BTN\_DEC\_PIN}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+DEC\+\_\+\+PIN~DT\+\_\+\+GPIO\+\_\+\+PIN(\mbox{\hyperlink{main_8c_a944fef7ce8eada3ee28cb2366070e0a7}{BTN\+\_\+\+NODE\+\_\+\+DEC}}, gpios)}
+
+\Hypertarget{main_8c_a57c785e1efc6d76a8019061e263589ef}\label{main_8c_a57c785e1efc6d76a8019061e263589ef} 
+\index{main.c@{main.c}!BTN\_INC\_DEV@{BTN\_INC\_DEV}}
+\index{BTN\_INC\_DEV@{BTN\_INC\_DEV}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_INC\_DEV}{BTN\_INC\_DEV}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+INC\+\_\+\+DEV~DT\+\_\+\+GPIO\+\_\+\+CTLR(\mbox{\hyperlink{main_8c_ab7a49be1380bffc58acc1e5e87b968e2}{BTN\+\_\+\+NODE\+\_\+\+INC}}, gpios)}
+
+\Hypertarget{main_8c_a2307b3d1787df8f605e71e3a6270ef52}\label{main_8c_a2307b3d1787df8f605e71e3a6270ef52} 
+\index{main.c@{main.c}!BTN\_INC\_FLAGS@{BTN\_INC\_FLAGS}}
+\index{BTN\_INC\_FLAGS@{BTN\_INC\_FLAGS}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_INC\_FLAGS}{BTN\_INC\_FLAGS}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+INC\+\_\+\+FLAGS~(DT\+\_\+\+GPIO\+\_\+\+FLAGS(\mbox{\hyperlink{main_8c_ab7a49be1380bffc58acc1e5e87b968e2}{BTN\+\_\+\+NODE\+\_\+\+INC}}, gpios) \texorpdfstring{$\vert$}{|} GPIO\+\_\+\+INPUT)}
+
+\Hypertarget{main_8c_abfa9506de7ef04c31db16f993de70249}\label{main_8c_abfa9506de7ef04c31db16f993de70249} 
+\index{main.c@{main.c}!BTN\_INC\_PIN@{BTN\_INC\_PIN}}
+\index{BTN\_INC\_PIN@{BTN\_INC\_PIN}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_INC\_PIN}{BTN\_INC\_PIN}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+INC\+\_\+\+PIN~DT\+\_\+\+GPIO\+\_\+\+PIN(\mbox{\hyperlink{main_8c_ab7a49be1380bffc58acc1e5e87b968e2}{BTN\+\_\+\+NODE\+\_\+\+INC}}, gpios)}
+
+\Hypertarget{main_8c_a978e7b36b5b694c80ef6ea7d03ed1e58}\label{main_8c_a978e7b36b5b694c80ef6ea7d03ed1e58} 
+\index{main.c@{main.c}!BTN\_MENU\_DEV@{BTN\_MENU\_DEV}}
+\index{BTN\_MENU\_DEV@{BTN\_MENU\_DEV}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_MENU\_DEV}{BTN\_MENU\_DEV}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+MENU\+\_\+\+DEV~DT\+\_\+\+GPIO\+\_\+\+CTLR(\mbox{\hyperlink{main_8c_a6cd918a356ea21170a9023ec211199c4}{BTN\+\_\+\+NODE\+\_\+\+MENU}}, gpios)}
+
+\Hypertarget{main_8c_a5f1aa626e51f58c68ce5a750a238b43e}\label{main_8c_a5f1aa626e51f58c68ce5a750a238b43e} 
+\index{main.c@{main.c}!BTN\_MENU\_FLAGS@{BTN\_MENU\_FLAGS}}
+\index{BTN\_MENU\_FLAGS@{BTN\_MENU\_FLAGS}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_MENU\_FLAGS}{BTN\_MENU\_FLAGS}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+MENU\+\_\+\+FLAGS~(DT\+\_\+\+GPIO\+\_\+\+FLAGS(\mbox{\hyperlink{main_8c_a6cd918a356ea21170a9023ec211199c4}{BTN\+\_\+\+NODE\+\_\+\+MENU}}, gpios) \texorpdfstring{$\vert$}{|} GPIO\+\_\+\+INPUT)}
+
+\Hypertarget{main_8c_a6671305f52aa9d6c9641963c5c785135}\label{main_8c_a6671305f52aa9d6c9641963c5c785135} 
+\index{main.c@{main.c}!BTN\_MENU\_PIN@{BTN\_MENU\_PIN}}
+\index{BTN\_MENU\_PIN@{BTN\_MENU\_PIN}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_MENU\_PIN}{BTN\_MENU\_PIN}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+MENU\+\_\+\+PIN~DT\+\_\+\+GPIO\+\_\+\+PIN(\mbox{\hyperlink{main_8c_a6cd918a356ea21170a9023ec211199c4}{BTN\+\_\+\+NODE\+\_\+\+MENU}}, gpios)}
+
+\Hypertarget{main_8c_a944fef7ce8eada3ee28cb2366070e0a7}\label{main_8c_a944fef7ce8eada3ee28cb2366070e0a7} 
+\index{main.c@{main.c}!BTN\_NODE\_DEC@{BTN\_NODE\_DEC}}
+\index{BTN\_NODE\_DEC@{BTN\_NODE\_DEC}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_NODE\_DEC}{BTN\_NODE\_DEC}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+NODE\+\_\+\+DEC~DT\+\_\+\+ALIAS(sw3)}
+
+\Hypertarget{main_8c_ab7a49be1380bffc58acc1e5e87b968e2}\label{main_8c_ab7a49be1380bffc58acc1e5e87b968e2} 
+\index{main.c@{main.c}!BTN\_NODE\_INC@{BTN\_NODE\_INC}}
+\index{BTN\_NODE\_INC@{BTN\_NODE\_INC}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_NODE\_INC}{BTN\_NODE\_INC}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+NODE\+\_\+\+INC~DT\+\_\+\+ALIAS(sw1)}
+
+\Hypertarget{main_8c_a6cd918a356ea21170a9023ec211199c4}\label{main_8c_a6cd918a356ea21170a9023ec211199c4} 
+\index{main.c@{main.c}!BTN\_NODE\_MENU@{BTN\_NODE\_MENU}}
+\index{BTN\_NODE\_MENU@{BTN\_NODE\_MENU}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_NODE\_MENU}{BTN\_NODE\_MENU}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+NODE\+\_\+\+MENU~DT\+\_\+\+ALIAS(sw2)}
+
+\Hypertarget{main_8c_aed45ad22683a9ea4259950d7fc941dcd}\label{main_8c_aed45ad22683a9ea4259950d7fc941dcd} 
+\index{main.c@{main.c}!BTN\_NODE\_ONOFF@{BTN\_NODE\_ONOFF}}
+\index{BTN\_NODE\_ONOFF@{BTN\_NODE\_ONOFF}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_NODE\_ONOFF}{BTN\_NODE\_ONOFF}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+NODE\+\_\+\+ONOFF~DT\+\_\+\+ALIAS(sw0)}
+
+\Hypertarget{main_8c_a735f93311c16ab7758c4b7d3f004e6dc}\label{main_8c_a735f93311c16ab7758c4b7d3f004e6dc} 
+\index{main.c@{main.c}!BTN\_ONOFF\_DEV@{BTN\_ONOFF\_DEV}}
+\index{BTN\_ONOFF\_DEV@{BTN\_ONOFF\_DEV}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_ONOFF\_DEV}{BTN\_ONOFF\_DEV}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+ONOFF\+\_\+\+DEV~DT\+\_\+\+GPIO\+\_\+\+CTLR(\mbox{\hyperlink{main_8c_aed45ad22683a9ea4259950d7fc941dcd}{BTN\+\_\+\+NODE\+\_\+\+ONOFF}}, gpios)}
+
+\Hypertarget{main_8c_a08a380f6dab88579fd4b373a5a7ca7d4}\label{main_8c_a08a380f6dab88579fd4b373a5a7ca7d4} 
+\index{main.c@{main.c}!BTN\_ONOFF\_FLAGS@{BTN\_ONOFF\_FLAGS}}
+\index{BTN\_ONOFF\_FLAGS@{BTN\_ONOFF\_FLAGS}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_ONOFF\_FLAGS}{BTN\_ONOFF\_FLAGS}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+ONOFF\+\_\+\+FLAGS~(DT\+\_\+\+GPIO\+\_\+\+FLAGS(\mbox{\hyperlink{main_8c_aed45ad22683a9ea4259950d7fc941dcd}{BTN\+\_\+\+NODE\+\_\+\+ONOFF}}, gpios) \texorpdfstring{$\vert$}{|} GPIO\+\_\+\+INPUT)}
+
+\Hypertarget{main_8c_aa698c1084dee0a05ffa2f57889cb7632}\label{main_8c_aa698c1084dee0a05ffa2f57889cb7632} 
+\index{main.c@{main.c}!BTN\_ONOFF\_PIN@{BTN\_ONOFF\_PIN}}
+\index{BTN\_ONOFF\_PIN@{BTN\_ONOFF\_PIN}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{BTN\_ONOFF\_PIN}{BTN\_ONOFF\_PIN}}
+{\footnotesize\ttfamily \#define BTN\+\_\+\+ONOFF\+\_\+\+PIN~DT\+\_\+\+GPIO\+\_\+\+PIN(\mbox{\hyperlink{main_8c_aed45ad22683a9ea4259950d7fc941dcd}{BTN\+\_\+\+NODE\+\_\+\+ONOFF}}, gpios)}
+
+\Hypertarget{main_8c_add56dedbc09f82766e39588e01978e7d}\label{main_8c_add56dedbc09f82766e39588e01978e7d} 
+\index{main.c@{main.c}!DEBOUNCE\_MS@{DEBOUNCE\_MS}}
+\index{DEBOUNCE\_MS@{DEBOUNCE\_MS}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{DEBOUNCE\_MS}{DEBOUNCE\_MS}}
+{\footnotesize\ttfamily \#define DEBOUNCE\+\_\+\+MS~50}
+
+Tempo de debounce para botões (ms) \Hypertarget{main_8c_a61e15cb2413134ad4873a095057ba60e}\label{main_8c_a61e15cb2413134ad4873a095057ba60e} 
+\index{main.c@{main.c}!I2C0\_NID@{I2C0\_NID}}
+\index{I2C0\_NID@{I2C0\_NID}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{I2C0\_NID}{I2C0\_NID}}
+{\footnotesize\ttfamily \#define I2\+C0\+\_\+\+NID~DT\+\_\+\+NODELABEL(tc74sensor)}
+
+\Hypertarget{main_8c_a71090bba474a77e2d24330241219da46}\label{main_8c_a71090bba474a77e2d24330241219da46} 
+\index{main.c@{main.c}!LED\_NODE\_HIGH@{LED\_NODE\_HIGH}}
+\index{LED\_NODE\_HIGH@{LED\_NODE\_HIGH}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{LED\_NODE\_HIGH}{LED\_NODE\_HIGH}}
+{\footnotesize\ttfamily \#define LED\+\_\+\+NODE\+\_\+\+HIGH~DT\+\_\+\+ALIAS(led3)}
+
+\Hypertarget{main_8c_a3f33888c6ff7135ea50b7c41428f4778}\label{main_8c_a3f33888c6ff7135ea50b7c41428f4778} 
+\index{main.c@{main.c}!LED\_NODE\_LOW@{LED\_NODE\_LOW}}
+\index{LED\_NODE\_LOW@{LED\_NODE\_LOW}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{LED\_NODE\_LOW}{LED\_NODE\_LOW}}
+{\footnotesize\ttfamily \#define LED\+\_\+\+NODE\+\_\+\+LOW~DT\+\_\+\+ALIAS(led2)}
+
+\Hypertarget{main_8c_a7ec72e9e1205fe670999b58ae24bdb6b}\label{main_8c_a7ec72e9e1205fe670999b58ae24bdb6b} 
+\index{main.c@{main.c}!LED\_NODE\_NORMAL@{LED\_NODE\_NORMAL}}
+\index{LED\_NODE\_NORMAL@{LED\_NODE\_NORMAL}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{LED\_NODE\_NORMAL}{LED\_NODE\_NORMAL}}
+{\footnotesize\ttfamily \#define LED\+\_\+\+NODE\+\_\+\+NORMAL~DT\+\_\+\+ALIAS(led1)}
+
+\Hypertarget{main_8c_a98dbd638cf9eaa926698857ba3a100f6}\label{main_8c_a98dbd638cf9eaa926698857ba3a100f6} 
+\index{main.c@{main.c}!LED\_NODE\_ONOFF@{LED\_NODE\_ONOFF}}
+\index{LED\_NODE\_ONOFF@{LED\_NODE\_ONOFF}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{LED\_NODE\_ONOFF}{LED\_NODE\_ONOFF}}
+{\footnotesize\ttfamily \#define LED\+\_\+\+NODE\+\_\+\+ONOFF~DT\+\_\+\+ALIAS(led0)}
+
+\Hypertarget{main_8c_a79aaa89920d05217559f07e3602af050}\label{main_8c_a79aaa89920d05217559f07e3602af050} 
+\index{main.c@{main.c}!TC74\_CMD\_RTR@{TC74\_CMD\_RTR}}
+\index{TC74\_CMD\_RTR@{TC74\_CMD\_RTR}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{TC74\_CMD\_RTR}{TC74\_CMD\_RTR}}
+{\footnotesize\ttfamily \#define TC74\+\_\+\+CMD\+\_\+\+RTR~0x00u}
+
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{main_8c_ab29d603b0ccc3d33eac92b0ca4bbb904}\label{main_8c_ab29d603b0ccc3d33eac92b0ca4bbb904} 
+\index{main.c@{main.c}!button\_ctrl\_init@{button\_ctrl\_init}}
+\index{button\_ctrl\_init@{button\_ctrl\_init}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{button\_ctrl\_init()}{button\_ctrl\_init()}}
+{\footnotesize\ttfamily void button\+\_\+ctrl\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa todos os botões (SW0..SW3) com configurações de GPIO e callbacks. 
+
+Configura cada botão como entrada e ativa interrupção no flanco de subida. Liga callbacks onoff\+\_\+pressed, inc\+\_\+pressed, menu\+\_\+pressed e dec\+\_\+pressed. \Hypertarget{main_8c_aab00d20330aa6a00b80d197675ae3b72}\label{main_8c_aab00d20330aa6a00b80d197675ae3b72} 
+\index{main.c@{main.c}!led\_ctrl\_init@{led\_ctrl\_init}}
+\index{led\_ctrl\_init@{led\_ctrl\_init}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{led\_ctrl\_init()}{led\_ctrl\_init()}}
+{\footnotesize\ttfamily void led\+\_\+ctrl\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa o controlo de LEDs criando a thread led\+\_\+task. 
+
+\Hypertarget{main_8c_a840291bc02cba5474a4cb46a9b9566fe}\label{main_8c_a840291bc02cba5474a4cb46a9b9566fe} 
+\index{main.c@{main.c}!main@{main}}
+\index{main@{main}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily int main (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Função principal (entry point) do firmware. 
+
+
+\begin{DoxyItemize}
+\item Exibe menu inicial
+\item Inicializa todas as tarefas do sistema\+: • \doxylink{uartcomm_8c_a831861af1bf5e28dca2ae8b1b7f27b3e}{uart\+\_\+comm\+\_\+init()}\+: thread de comunicação UART • \doxylink{main_8c_ab29d603b0ccc3d33eac92b0ca4bbb904}{button\+\_\+ctrl\+\_\+init()}\+: configuração de botões e callbacks • \doxylink{main_8c_aab00d20330aa6a00b80d197675ae3b72}{led\+\_\+ctrl\+\_\+init()}\+: thread de controlo de LEDs • tempsensor\+\_\+init()\+: thread de leitura do sensor I²C • \doxylink{controller_8c_ad13ec5f696a3c69997b9fc57246a0238}{controller\+\_\+init()}\+: thread do controlador ON/\+OFF do aquecedor
+\end{DoxyItemize}
+
+\begin{DoxyReturn}{Returns}
+Nunca retorna (ainda que a função devolva 0, o Zephyr mantém as threads vivas) 
+\end{DoxyReturn}

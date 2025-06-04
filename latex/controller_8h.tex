@@ -1,0 +1,46 @@
+\doxysection{src/controller.h File Reference}
+\hypertarget{controller_8h}{}\label{controller_8h}\index{src/controller.h@{src/controller.h}}
+
+
+Interface do controlador On/\+Off para processo térmico.  
+
+
+This graph shows which files directly or indirectly include this file\+:
+% FIG 0
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{controller_8h_ad13ec5f696a3c69997b9fc57246a0238}{controller\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa o on/off heater controller. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Interface do controlador On/\+Off para processo térmico. 
+
+Proporciona a função \doxylink{controller_8h_ad13ec5f696a3c69997b9fc57246a0238}{controller\+\_\+init()}, que cria uma thread responsável por ler o setpoint e a temperatura atual da RTDB e controlar um MOSFET com histerese ±1°C. 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{controller_8h_ad13ec5f696a3c69997b9fc57246a0238}\label{controller_8h_ad13ec5f696a3c69997b9fc57246a0238} 
+\index{controller.h@{controller.h}!controller\_init@{controller\_init}}
+\index{controller\_init@{controller\_init}!controller.h@{controller.h}}
+\doxysubsubsection{\texorpdfstring{controller\_init()}{controller\_init()}}
+{\footnotesize\ttfamily void controller\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa o on/off heater controller. 
+
+Esta função\+:
+\begin{DoxyEnumerate}
+\item Lê o nó DT “gpio1” e configura o pino P1.\+12 como saída (nível alto = heater OFF).
+\item Cria uma thread (priority=5, stack=1KB) que roda control\+\_\+task() ciclicamente.
+\end{DoxyEnumerate}
+
+Inicializa o on/off heater controller.
+
+
+\begin{DoxyItemize}
+\item Obtém o dispositivo GPIO (P1.\+12) para o MOSFET
+\item Configura P1.\+12 como saída com nível alto (heater OFF)
+\item Cria a thread control\+\_\+task com prioridade 5 
+\end{DoxyItemize}

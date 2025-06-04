@@ -1,0 +1,38 @@
+\doxysection{src/uartcomm.h File Reference}
+\hypertarget{uartcomm_8h}{}\label{uartcomm_8h}\index{src/uartcomm.h@{src/uartcomm.h}}
+
+
+Interface do módulo de comunicação UART (parser de comandos + framing)  
+
+
+{\ttfamily \#include $<$zephyr/device.\+h$>$}\newline
+Include dependency graph for uartcomm.\+h\+:
+% FIG 0
+This graph shows which files directly or indirectly include this file\+:
+% FIG 1
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{uartcomm_8h_a831861af1bf5e28dca2ae8b1b7f27b3e}{uart\+\_\+comm\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa a thread de comunicação UART. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Interface do módulo de comunicação UART (parser de comandos + framing) 
+
+Este header exporta apenas a função \doxylink{uartcomm_8h_a831861af1bf5e28dca2ae8b1b7f27b3e}{uart\+\_\+comm\+\_\+init()}, que inicia uma thread responsável por ler bytes da UART em modo polling, reconstituir frames do tipo “\#$<$\+CMD$>$$<$\+DATA$>$$<$\+CS$>$!” e disparar o tratamento de cada comando. 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{uartcomm_8h_a831861af1bf5e28dca2ae8b1b7f27b3e}\label{uartcomm_8h_a831861af1bf5e28dca2ae8b1b7f27b3e} 
+\index{uartcomm.h@{uartcomm.h}!uart\_comm\_init@{uart\_comm\_init}}
+\index{uart\_comm\_init@{uart\_comm\_init}!uartcomm.h@{uartcomm.h}}
+\doxysubsubsection{\texorpdfstring{uart\_comm\_init()}{uart\_comm\_init()}}
+{\footnotesize\ttfamily void uart\+\_\+comm\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa a thread de comunicação UART. 
+
+Cria uma thread de prioridade 5 que roda uart\+\_\+task(), fazendo polling da UART, montando e validando frames, e chamando internamente handle\+\_\+command() para processar cada comando recebido.
+
+Inicializa a thread de comunicação UART. 

@@ -1,0 +1,47 @@
+\doxysection{rtdb.\+h}
+\hypertarget{rtdb_8h_source}{}\label{rtdb_8h_source}\index{src/rtdb.h@{src/rtdb.h}}
+\mbox{\hyperlink{rtdb_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ RTDB\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ RTDB\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <stdbool.h>}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \mbox{\hyperlink{structrtdb__t_a63102602ade20f13da41c4cb3d08267c}{system\_on}};\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Sistema\ ligado/desligado\ */}}
+\DoxyCodeLine{00021\ \ \ \ \ int16\_t\ \mbox{\hyperlink{structrtdb__t_a55f144f3132eb8261a6195a7ef736b1a}{setpoint}};\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Temperatura\ alvo\ (°C)\ */}}
+\DoxyCodeLine{00022\ \ \ \ \ int16\_t\ \mbox{\hyperlink{structrtdb__t_a0348ffa0beddd1e441fb9eec5cae2b2a}{current\_temp}};\ \ \ \ \ \ \textcolor{comment}{/*\ Temperatura\ lida\ do\ sensor\ (°C)\ */}}
+\DoxyCodeLine{00023\ \ \ \ \ int16\_t\ \mbox{\hyperlink{structrtdb__t_aa83c426ede3abf311193577d8ef7f249}{max\_temp}};\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Temperatura\ máxima\ permitida\ (°C)\ */}}
+\DoxyCodeLine{00024\ \ \ \ \ int16\_t\ \mbox{\hyperlink{structrtdb__t_a19f65f2e5854ce33c003ef44f9eba07a}{min\_temp}};\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Temperatura\ mínima\ permitida\ (°C)\ */}}
+\DoxyCodeLine{00025\ \ \ \ \ uint32\_t\ \mbox{\hyperlink{structrtdb__t_ab2ac0946204a2bcb023a69de28bc90f9}{sampling\_rate\_ms}};\ \textcolor{comment}{/*\ Intervalo\ de\ amostragem\ em\ ms\ */}}
+\DoxyCodeLine{00026\ \}\ \mbox{\hyperlink{structrtdb__t}{rtdb\_t}};}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00032\ \textcolor{keywordtype}{bool}\ \ \ \ \mbox{\hyperlink{rtdb_8h_a28fc1e297fbe83c05b3fbd8a7f4aba7e}{rtdb\_get\_system\_on}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00038\ \textcolor{keywordtype}{void}\ \ \ \ \mbox{\hyperlink{rtdb_8h_ad3ca78c2547c5cb3f0c7c466da06932b}{rtdb\_set\_system\_on}}(\textcolor{keywordtype}{bool}\ on);}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00044\ int16\_t\ \mbox{\hyperlink{rtdb_8h_ac55b17b1037905a6c5d7b09f075b7a18}{rtdb\_get\_setpoint}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00050\ \textcolor{keywordtype}{void}\ \ \ \ \mbox{\hyperlink{rtdb_8h_abbf525c10ecf718afbdaf4dc11812019}{rtdb\_set\_setpoint}}(int16\_t\ val);}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00056\ int16\_t\ \mbox{\hyperlink{rtdb_8h_a21b96da3678a46a2a2a5a92733e05702}{rtdb\_get\_current\_temp}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00062\ \textcolor{keywordtype}{void}\ \ \ \ \mbox{\hyperlink{rtdb_8h_a33888c282a26f5e732757ac2b47590fc}{rtdb\_set\_current\_temp}}(int16\_t\ val);}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00068\ int16\_t\ \mbox{\hyperlink{rtdb_8h_a2676695390b1ac341a63c6ea177b8eef}{rtdb\_get\_max\_temp}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00074\ \textcolor{keywordtype}{void}\ \ \ \ \mbox{\hyperlink{rtdb_8h_ad09296e3b71a4e588d1932209845ec11}{rtdb\_set\_max\_temp}}(int16\_t\ val);}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00080\ int16\_t\ \mbox{\hyperlink{rtdb_8h_a9697206245433e8a605f15cc0557f0e1}{rtdb\_get\_min\_temp}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00086\ \textcolor{keywordtype}{void}\ \ \ \ \mbox{\hyperlink{rtdb_8h_a8dcbcf3c9610c52b9d4289f71639db90}{rtdb\_set\_min\_temp}}(int16\_t\ val);}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00092\ uint32\_t\ \mbox{\hyperlink{rtdb_8h_a68355695ebe5cfb9d7cdf7f0df5b8c41}{rtdb\_get\_sampling\_rate}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00098\ \textcolor{keywordtype}{void}\ \ \ \ \ \mbox{\hyperlink{rtdb_8h_a3fa1e628ee32456037307422fe1a1bbf}{rtdb\_set\_sampling\_rate}}(uint32\_t\ ms);}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ RTDB\_H\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00101\ }
+
+\end{DoxyCode}

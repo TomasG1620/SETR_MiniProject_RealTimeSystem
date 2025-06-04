@@ -1,0 +1,75 @@
+\doxysection{src/controller.c File Reference}
+\hypertarget{controller_8c}{}\label{controller_8c}\index{src/controller.c@{src/controller.c}}
+
+
+On/\+Off controller para processo térmico.  
+
+
+{\ttfamily \#include "{}controller.\+h"{}}\newline
+{\ttfamily \#include "{}rtdb.\+h"{}}\newline
+{\ttfamily \#include $<$zephyr/kernel.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/device.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/drivers/gpio.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/sys/printk.\+h$>$}\newline
+Include dependency graph for controller.\+c\+:
+% FIG 0
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{controller_8c_affe4e593465ffcefe0aa3978f2b6fbd0}{HEATER\+\_\+\+GPIO\+\_\+\+NODE}}~DT\+\_\+\+NODELABEL(gpio1)
+\item 
+\#define \mbox{\hyperlink{controller_8c_a1a4cece415ae7d43099dae4ff8b8a31c}{HEATER\+\_\+\+PIN}}~12U                  /\texorpdfstring{$\ast$}{*} P1.\+12 ligado à porta do MOSFET \texorpdfstring{$\ast$}{*}/
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{controller_8c_ad13ec5f696a3c69997b9fc57246a0238}{controller\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa o controlador ON/\+OFF. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+On/\+Off controller para processo térmico. 
+
+
+\begin{DoxyItemize}
+\item Lê setpoint e current\+\_\+temp da RTDB
+\item Controla um MOSFET (porta P1.\+12) com histerese ±1 °C
+\item Quando sistema está desligado (system\+\_\+on = false), garante que o aquecedor fique OFF
+\end{DoxyItemize}
+
+O MOSFET é assumido como “active-\/low” (nível lógico 0 = heater ON, 1 = heater OFF). 
+
+\doxysubsection{Macro Definition Documentation}
+\Hypertarget{controller_8c_affe4e593465ffcefe0aa3978f2b6fbd0}\label{controller_8c_affe4e593465ffcefe0aa3978f2b6fbd0} 
+\index{controller.c@{controller.c}!HEATER\_GPIO\_NODE@{HEATER\_GPIO\_NODE}}
+\index{HEATER\_GPIO\_NODE@{HEATER\_GPIO\_NODE}!controller.c@{controller.c}}
+\doxysubsubsection{\texorpdfstring{HEATER\_GPIO\_NODE}{HEATER\_GPIO\_NODE}}
+{\footnotesize\ttfamily \#define HEATER\+\_\+\+GPIO\+\_\+\+NODE~DT\+\_\+\+NODELABEL(gpio1)}
+
+\Hypertarget{controller_8c_a1a4cece415ae7d43099dae4ff8b8a31c}\label{controller_8c_a1a4cece415ae7d43099dae4ff8b8a31c} 
+\index{controller.c@{controller.c}!HEATER\_PIN@{HEATER\_PIN}}
+\index{HEATER\_PIN@{HEATER\_PIN}!controller.c@{controller.c}}
+\doxysubsubsection{\texorpdfstring{HEATER\_PIN}{HEATER\_PIN}}
+{\footnotesize\ttfamily \#define HEATER\+\_\+\+PIN~12U                  /\texorpdfstring{$\ast$}{*} P1.\+12 ligado à porta do MOSFET \texorpdfstring{$\ast$}{*}/}
+
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{controller_8c_ad13ec5f696a3c69997b9fc57246a0238}\label{controller_8c_ad13ec5f696a3c69997b9fc57246a0238} 
+\index{controller.c@{controller.c}!controller\_init@{controller\_init}}
+\index{controller\_init@{controller\_init}!controller.c@{controller.c}}
+\doxysubsubsection{\texorpdfstring{controller\_init()}{controller\_init()}}
+{\footnotesize\ttfamily void controller\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa o controlador ON/\+OFF. 
+
+Inicializa o on/off heater controller.
+
+
+\begin{DoxyItemize}
+\item Obtém o dispositivo GPIO (P1.\+12) para o MOSFET
+\item Configura P1.\+12 como saída com nível alto (heater OFF)
+\item Cria a thread control\+\_\+task com prioridade 5 
+\end{DoxyItemize}

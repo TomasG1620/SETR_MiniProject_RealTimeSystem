@@ -1,0 +1,265 @@
+\doxysection{src/rtdb.c File Reference}
+\hypertarget{rtdb_8c}{}\label{rtdb_8c}\index{src/rtdb.c@{src/rtdb.c}}
+
+
+Real-\/\+Time Database (RTDB) para o controlador térmico.  
+
+
+{\ttfamily \#include "{}rtdb.\+h"{}}\newline
+{\ttfamily \#include $<$zephyr/kernel.\+h$>$}\newline
+Include dependency graph for rtdb.\+c\+:
+% FIG 0
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{rtdb_8c_a7dbff4279d6f244a7943ec8591891965}{SYS\+\_\+\+INIT}} (rtdb\+\_\+mutex\+\_\+init, APPLICATION, CONFIG\+\_\+\+APPLICATION\+\_\+\+INIT\+\_\+\+PRIORITY)
+\item 
+bool \mbox{\hyperlink{rtdb_8c_a28fc1e297fbe83c05b3fbd8a7f4aba7e}{rtdb\+\_\+get\+\_\+system\+\_\+on}} (void)
+\begin{DoxyCompactList}\small\item\em Lê o valor de system\+\_\+on (protected by mutex) \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{rtdb_8c_ad3ca78c2547c5cb3f0c7c466da06932b}{rtdb\+\_\+set\+\_\+system\+\_\+on}} (bool on)
+\begin{DoxyCompactList}\small\item\em Atualiza o valor de system\+\_\+on (protected by mutex) \end{DoxyCompactList}\item 
+int16\+\_\+t \mbox{\hyperlink{rtdb_8c_ac55b17b1037905a6c5d7b09f075b7a18}{rtdb\+\_\+get\+\_\+setpoint}} (void)
+\begin{DoxyCompactList}\small\item\em Lê o setpoint atual (protected by mutex) \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{rtdb_8c_abbf525c10ecf718afbdaf4dc11812019}{rtdb\+\_\+set\+\_\+setpoint}} (int16\+\_\+t val)
+\begin{DoxyCompactList}\small\item\em Atualiza o setpoint, limitando entre min\+\_\+temp e max\+\_\+temp (protected by mutex) \end{DoxyCompactList}\item 
+int16\+\_\+t \mbox{\hyperlink{rtdb_8c_a21b96da3678a46a2a2a5a92733e05702}{rtdb\+\_\+get\+\_\+current\+\_\+temp}} (void)
+\begin{DoxyCompactList}\small\item\em Lê a temperatura atual (protected by mutex) \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{rtdb_8c_a33888c282a26f5e732757ac2b47590fc}{rtdb\+\_\+set\+\_\+current\+\_\+temp}} (int16\+\_\+t val)
+\begin{DoxyCompactList}\small\item\em Atualiza current\+\_\+temp (protected by mutex) \end{DoxyCompactList}\item 
+int16\+\_\+t \mbox{\hyperlink{rtdb_8c_a2676695390b1ac341a63c6ea177b8eef}{rtdb\+\_\+get\+\_\+max\+\_\+temp}} (void)
+\begin{DoxyCompactList}\small\item\em Lê max\+\_\+temp (protected by mutex) \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{rtdb_8c_ad09296e3b71a4e588d1932209845ec11}{rtdb\+\_\+set\+\_\+max\+\_\+temp}} (int16\+\_\+t val)
+\begin{DoxyCompactList}\small\item\em Atualiza max\+\_\+temp; ajusta setpoint se estiver acima de max\+\_\+temp (protected by mutex) \end{DoxyCompactList}\item 
+int16\+\_\+t \mbox{\hyperlink{rtdb_8c_a9697206245433e8a605f15cc0557f0e1}{rtdb\+\_\+get\+\_\+min\+\_\+temp}} (void)
+\begin{DoxyCompactList}\small\item\em Lê min\+\_\+temp (protected by mutex) \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{rtdb_8c_a8dcbcf3c9610c52b9d4289f71639db90}{rtdb\+\_\+set\+\_\+min\+\_\+temp}} (int16\+\_\+t val)
+\begin{DoxyCompactList}\small\item\em Atualiza min\+\_\+temp; ajusta setpoint se estiver abaixo de min\+\_\+temp (protected by mutex) \end{DoxyCompactList}\item 
+uint32\+\_\+t \mbox{\hyperlink{rtdb_8c_a68355695ebe5cfb9d7cdf7f0df5b8c41}{rtdb\+\_\+get\+\_\+sampling\+\_\+rate}} (void)
+\begin{DoxyCompactList}\small\item\em Lê sampling\+\_\+rate\+\_\+ms (protected by mutex) \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{rtdb_8c_a3fa1e628ee32456037307422fe1a1bbf}{rtdb\+\_\+set\+\_\+sampling\+\_\+rate}} (uint32\+\_\+t ms)
+\begin{DoxyCompactList}\small\item\em Atualiza sampling\+\_\+rate\+\_\+ms, limitando entre 10 ms e 60000 ms (protected by mutex) \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Real-\/\+Time Database (RTDB) para o controlador térmico. 
+
+Esta implementação mantém um conjunto de variáveis de estado e configuração que são partilhadas entre várias threads\+:
+\begin{DoxyItemize}
+\item system\+\_\+on (bool)\+: sistema ligado/desligado
+\item setpoint (int16)\+: temperatura alvo (°C)
+\item current\+\_\+temp (int16)\+: temperatura lida do sensor (°C)
+\item max\+\_\+temp (int16)\+: temperatura máxima permitida (°C)
+\item min\+\_\+temp (int16)\+: temperatura mínima permitida (°C)
+\item sampling\+\_\+rate\+\_\+ms(uint32)\+: intervalo de amostragem do sensor (ms)
+\end{DoxyItemize}
+
+Todas as funções de acesso à RTDB (getters e setters) protegem a região crítica usando um mutex (k\+\_\+mutex). O mutex é inicializado via \doxylink{rtdb_8c_a7dbff4279d6f244a7943ec8591891965}{SYS\+\_\+\+INIT()} logo no arranque.
+
+\begin{DoxyNote}{Note}
+
+\begin{DoxyItemize}
+\item setpoint nunca ultrapassa max\+\_\+temp nem fica abaixo de min\+\_\+temp.
+\item min\+\_\+temp e max\+\_\+temp atualizam o setpoint caso este fique fora dos limites. 
+\end{DoxyItemize}
+\end{DoxyNote}
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{rtdb_8c_a21b96da3678a46a2a2a5a92733e05702}\label{rtdb_8c_a21b96da3678a46a2a2a5a92733e05702} 
+\index{rtdb.c@{rtdb.c}!rtdb\_get\_current\_temp@{rtdb\_get\_current\_temp}}
+\index{rtdb\_get\_current\_temp@{rtdb\_get\_current\_temp}!rtdb.c@{rtdb.c}}
+\doxysubsubsection{\texorpdfstring{rtdb\_get\_current\_temp()}{rtdb\_get\_current\_temp()}}
+{\footnotesize\ttfamily int16\+\_\+t rtdb\+\_\+get\+\_\+current\+\_\+temp (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Lê a temperatura atual (protected by mutex) 
+
+Lê a temperatura atual lida do sensor (°C)
+
+\begin{DoxyReturn}{Returns}
+current\+\_\+temp (°C) 
+\end{DoxyReturn}
+\Hypertarget{rtdb_8c_a2676695390b1ac341a63c6ea177b8eef}\label{rtdb_8c_a2676695390b1ac341a63c6ea177b8eef} 
+\index{rtdb.c@{rtdb.c}!rtdb\_get\_max\_temp@{rtdb\_get\_max\_temp}}
+\index{rtdb\_get\_max\_temp@{rtdb\_get\_max\_temp}!rtdb.c@{rtdb.c}}
+\doxysubsubsection{\texorpdfstring{rtdb\_get\_max\_temp()}{rtdb\_get\_max\_temp()}}
+{\footnotesize\ttfamily int16\+\_\+t rtdb\+\_\+get\+\_\+max\+\_\+temp (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Lê max\+\_\+temp (protected by mutex) 
+
+Lê o valor de temperatura máxima permitida (°C)
+
+\begin{DoxyReturn}{Returns}
+max\+\_\+temp (°C) 
+\end{DoxyReturn}
+\Hypertarget{rtdb_8c_a9697206245433e8a605f15cc0557f0e1}\label{rtdb_8c_a9697206245433e8a605f15cc0557f0e1} 
+\index{rtdb.c@{rtdb.c}!rtdb\_get\_min\_temp@{rtdb\_get\_min\_temp}}
+\index{rtdb\_get\_min\_temp@{rtdb\_get\_min\_temp}!rtdb.c@{rtdb.c}}
+\doxysubsubsection{\texorpdfstring{rtdb\_get\_min\_temp()}{rtdb\_get\_min\_temp()}}
+{\footnotesize\ttfamily int16\+\_\+t rtdb\+\_\+get\+\_\+min\+\_\+temp (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Lê min\+\_\+temp (protected by mutex) 
+
+Lê o valor de temperatura mínima permitida (°C)
+
+\begin{DoxyReturn}{Returns}
+min\+\_\+temp (°C) 
+\end{DoxyReturn}
+\Hypertarget{rtdb_8c_a68355695ebe5cfb9d7cdf7f0df5b8c41}\label{rtdb_8c_a68355695ebe5cfb9d7cdf7f0df5b8c41} 
+\index{rtdb.c@{rtdb.c}!rtdb\_get\_sampling\_rate@{rtdb\_get\_sampling\_rate}}
+\index{rtdb\_get\_sampling\_rate@{rtdb\_get\_sampling\_rate}!rtdb.c@{rtdb.c}}
+\doxysubsubsection{\texorpdfstring{rtdb\_get\_sampling\_rate()}{rtdb\_get\_sampling\_rate()}}
+{\footnotesize\ttfamily uint32\+\_\+t rtdb\+\_\+get\+\_\+sampling\+\_\+rate (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Lê sampling\+\_\+rate\+\_\+ms (protected by mutex) 
+
+Lê o intervalo de amostragem do sensor (ms)
+
+\begin{DoxyReturn}{Returns}
+Intervalo de amostragem em milissegundos 
+\end{DoxyReturn}
+\Hypertarget{rtdb_8c_ac55b17b1037905a6c5d7b09f075b7a18}\label{rtdb_8c_ac55b17b1037905a6c5d7b09f075b7a18} 
+\index{rtdb.c@{rtdb.c}!rtdb\_get\_setpoint@{rtdb\_get\_setpoint}}
+\index{rtdb\_get\_setpoint@{rtdb\_get\_setpoint}!rtdb.c@{rtdb.c}}
+\doxysubsubsection{\texorpdfstring{rtdb\_get\_setpoint()}{rtdb\_get\_setpoint()}}
+{\footnotesize\ttfamily int16\+\_\+t rtdb\+\_\+get\+\_\+setpoint (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Lê o setpoint atual (protected by mutex) 
+
+Lê o setpoint atual (°C)
+
+\begin{DoxyReturn}{Returns}
+Setpoint (°C) 
+\end{DoxyReturn}
+\Hypertarget{rtdb_8c_a28fc1e297fbe83c05b3fbd8a7f4aba7e}\label{rtdb_8c_a28fc1e297fbe83c05b3fbd8a7f4aba7e} 
+\index{rtdb.c@{rtdb.c}!rtdb\_get\_system\_on@{rtdb\_get\_system\_on}}
+\index{rtdb\_get\_system\_on@{rtdb\_get\_system\_on}!rtdb.c@{rtdb.c}}
+\doxysubsubsection{\texorpdfstring{rtdb\_get\_system\_on()}{rtdb\_get\_system\_on()}}
+{\footnotesize\ttfamily bool rtdb\+\_\+get\+\_\+system\+\_\+on (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Lê o valor de system\+\_\+on (protected by mutex) 
+
+Lê se o sistema está ligado ou não.
+
+\begin{DoxyReturn}{Returns}
+true se sistema ligado, false se desligado 
+\end{DoxyReturn}
+\Hypertarget{rtdb_8c_a33888c282a26f5e732757ac2b47590fc}\label{rtdb_8c_a33888c282a26f5e732757ac2b47590fc} 
+\index{rtdb.c@{rtdb.c}!rtdb\_set\_current\_temp@{rtdb\_set\_current\_temp}}
+\index{rtdb\_set\_current\_temp@{rtdb\_set\_current\_temp}!rtdb.c@{rtdb.c}}
+\doxysubsubsection{\texorpdfstring{rtdb\_set\_current\_temp()}{rtdb\_set\_current\_temp()}}
+{\footnotesize\ttfamily void rtdb\+\_\+set\+\_\+current\+\_\+temp (\begin{DoxyParamCaption}\item[{int16\+\_\+t}]{val }\end{DoxyParamCaption})}
+
+
+
+Atualiza current\+\_\+temp (protected by mutex) 
+
+Atualiza a temperatura atual (°C)
+
+
+\begin{DoxyParams}{Parameters}
+{\em val} & Valor de temperatura lido do sensor (°C, complemento a dois) \\
+\hline
+\end{DoxyParams}
+\Hypertarget{rtdb_8c_ad09296e3b71a4e588d1932209845ec11}\label{rtdb_8c_ad09296e3b71a4e588d1932209845ec11} 
+\index{rtdb.c@{rtdb.c}!rtdb\_set\_max\_temp@{rtdb\_set\_max\_temp}}
+\index{rtdb\_set\_max\_temp@{rtdb\_set\_max\_temp}!rtdb.c@{rtdb.c}}
+\doxysubsubsection{\texorpdfstring{rtdb\_set\_max\_temp()}{rtdb\_set\_max\_temp()}}
+{\footnotesize\ttfamily void rtdb\+\_\+set\+\_\+max\+\_\+temp (\begin{DoxyParamCaption}\item[{int16\+\_\+t}]{val }\end{DoxyParamCaption})}
+
+
+
+Atualiza max\+\_\+temp; ajusta setpoint se estiver acima de max\+\_\+temp (protected by mutex) 
+
+Define um novo valor de temperatura máxima, ajustando setpoint se necessário.
+
+
+\begin{DoxyParams}{Parameters}
+{\em val} & Novo valor máximo permitido (°C) \\
+\hline
+\end{DoxyParams}
+\Hypertarget{rtdb_8c_a8dcbcf3c9610c52b9d4289f71639db90}\label{rtdb_8c_a8dcbcf3c9610c52b9d4289f71639db90} 
+\index{rtdb.c@{rtdb.c}!rtdb\_set\_min\_temp@{rtdb\_set\_min\_temp}}
+\index{rtdb\_set\_min\_temp@{rtdb\_set\_min\_temp}!rtdb.c@{rtdb.c}}
+\doxysubsubsection{\texorpdfstring{rtdb\_set\_min\_temp()}{rtdb\_set\_min\_temp()}}
+{\footnotesize\ttfamily void rtdb\+\_\+set\+\_\+min\+\_\+temp (\begin{DoxyParamCaption}\item[{int16\+\_\+t}]{val }\end{DoxyParamCaption})}
+
+
+
+Atualiza min\+\_\+temp; ajusta setpoint se estiver abaixo de min\+\_\+temp (protected by mutex) 
+
+Define um novo valor de temperatura mínima, ajustando setpoint se necessário.
+
+
+\begin{DoxyParams}{Parameters}
+{\em val} & Novo valor mínimo permitido (°C) \\
+\hline
+\end{DoxyParams}
+\Hypertarget{rtdb_8c_a3fa1e628ee32456037307422fe1a1bbf}\label{rtdb_8c_a3fa1e628ee32456037307422fe1a1bbf} 
+\index{rtdb.c@{rtdb.c}!rtdb\_set\_sampling\_rate@{rtdb\_set\_sampling\_rate}}
+\index{rtdb\_set\_sampling\_rate@{rtdb\_set\_sampling\_rate}!rtdb.c@{rtdb.c}}
+\doxysubsubsection{\texorpdfstring{rtdb\_set\_sampling\_rate()}{rtdb\_set\_sampling\_rate()}}
+{\footnotesize\ttfamily void rtdb\+\_\+set\+\_\+sampling\+\_\+rate (\begin{DoxyParamCaption}\item[{uint32\+\_\+t}]{ms }\end{DoxyParamCaption})}
+
+
+
+Atualiza sampling\+\_\+rate\+\_\+ms, limitando entre 10 ms e 60000 ms (protected by mutex) 
+
+Define o intervalo de amostragem do sensor (limitado a 10..60000 ms)
+
+
+\begin{DoxyParams}{Parameters}
+{\em ms} & Novo intervalo de amostragem em milissegundos \\
+\hline
+\end{DoxyParams}
+\Hypertarget{rtdb_8c_abbf525c10ecf718afbdaf4dc11812019}\label{rtdb_8c_abbf525c10ecf718afbdaf4dc11812019} 
+\index{rtdb.c@{rtdb.c}!rtdb\_set\_setpoint@{rtdb\_set\_setpoint}}
+\index{rtdb\_set\_setpoint@{rtdb\_set\_setpoint}!rtdb.c@{rtdb.c}}
+\doxysubsubsection{\texorpdfstring{rtdb\_set\_setpoint()}{rtdb\_set\_setpoint()}}
+{\footnotesize\ttfamily void rtdb\+\_\+set\+\_\+setpoint (\begin{DoxyParamCaption}\item[{int16\+\_\+t}]{val }\end{DoxyParamCaption})}
+
+
+
+Atualiza o setpoint, limitando entre min\+\_\+temp e max\+\_\+temp (protected by mutex) 
+
+Define um novo setpoint, validando entre min\+\_\+temp e max\+\_\+temp.
+
+
+\begin{DoxyParams}{Parameters}
+{\em val} & Novo valor de setpoint (°C) \\
+\hline
+\end{DoxyParams}
+\Hypertarget{rtdb_8c_ad3ca78c2547c5cb3f0c7c466da06932b}\label{rtdb_8c_ad3ca78c2547c5cb3f0c7c466da06932b} 
+\index{rtdb.c@{rtdb.c}!rtdb\_set\_system\_on@{rtdb\_set\_system\_on}}
+\index{rtdb\_set\_system\_on@{rtdb\_set\_system\_on}!rtdb.c@{rtdb.c}}
+\doxysubsubsection{\texorpdfstring{rtdb\_set\_system\_on()}{rtdb\_set\_system\_on()}}
+{\footnotesize\ttfamily void rtdb\+\_\+set\+\_\+system\+\_\+on (\begin{DoxyParamCaption}\item[{bool}]{on }\end{DoxyParamCaption})}
+
+
+
+Atualiza o valor de system\+\_\+on (protected by mutex) 
+
+Altera o estado do sistema (ligado/desligado)
+
+
+\begin{DoxyParams}{Parameters}
+{\em on} & true para ligar sistema, false para desligar \\
+\hline
+\end{DoxyParams}
+\Hypertarget{rtdb_8c_a7dbff4279d6f244a7943ec8591891965}\label{rtdb_8c_a7dbff4279d6f244a7943ec8591891965} 
+\index{rtdb.c@{rtdb.c}!SYS\_INIT@{SYS\_INIT}}
+\index{SYS\_INIT@{SYS\_INIT}!rtdb.c@{rtdb.c}}
+\doxysubsubsection{\texorpdfstring{SYS\_INIT()}{SYS\_INIT()}}
+{\footnotesize\ttfamily SYS\+\_\+\+INIT (\begin{DoxyParamCaption}\item[{rtdb\+\_\+mutex\+\_\+init}]{,  }\item[{APPLICATION}]{,  }\item[{CONFIG\+\_\+\+APPLICATION\+\_\+\+INIT\+\_\+\+PRIORITY}]{ }\end{DoxyParamCaption})}
+
