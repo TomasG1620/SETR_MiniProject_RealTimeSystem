@@ -43,7 +43,7 @@
      ARG_UNUSED(p2);
      ARG_UNUSED(p3);
  
-     bool heater_on = false;  /* Estado atual do aquecedor */
+     bool heater = false;  /* Estado atual do aquecedor */
  
      for (;;)
      {
@@ -53,22 +53,22 @@
  
          if (!system_on) {
              /* Se o sistema estiver desligado, garante que aquecedor fique desligado */
-             heater_on = false;
+             heater = false;
          } else {
              /* Histerese ±1°C em torno do setpoint */
              if (cur <= sp - 1) {
-                 heater_on = true;
+                 heater = false;
              } else if (cur >= sp + 1) {
-                 heater_on = false;
+                 heater = true;
              }
              /* Caso contrário (entre sp-1 e sp+1), mantém heater_on inalterado */
          }
  
          /* Active-low gate: 0 = ON, 1 = OFF */
-         gpio_pin_set(heater_dev, HEATER_PIN, heater_on ? 0 : 1);
+         gpio_pin_set(heater_dev, HEATER_PIN, heater ? 0 : 1);
  
          printk("[Ctrl] sp=%d°C cur=%d°C heater=%s\n",
-                sp, cur, heater_on ? "ON" : "OFF");
+                sp, cur, heater ? "OFF" : "ON");
  
          k_sleep(K_MSEC(2000));
      }
